@@ -1,0 +1,24 @@
+trigger AccountRatingToContactLeadsource on Account (after update) 
+{
+     Map<Id,Account>Accmap=new Map<Id,Account>();
+    for(Account Acc:trigger.new)
+    {
+        Accmap.put(Acc.Id,Acc);
+    }
+    List<Contact>Conlist=new List<Contact>();
+    for(Contact Con:[select Id,AccountId from Contact where AccountId=:Accmap.keySet()])
+    {
+        Conlist.add(Con);
+    }
+    for(Contact Cont:Conlist)
+    {
+        if(Accmap.containsKey(Cont.AccountId))
+        {
+            if(Accmap.get(Cont.AccountId).Rating=='Hot')
+            {
+                Cont.LeadSource='Web';
+            }
+        }
+    }
+    database.update(Conlist,false);
+}
